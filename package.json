@@ -1,0 +1,77 @@
+{
+  "name": "granular-vscode",
+  "displayName": "Granular for VSCode",
+  "description": "Snippets and inline diagnostics for @granularjs/core projects.",
+  "version": "0.1.0",
+  "publisher": "granularjs",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Snippets", "Linters", "Programming Languages"],
+  "keywords": ["granular", "granularjs", "reactivity", "signals"],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "snippets": [
+      {
+        "language": "javascript",
+        "path": "./snippets/granular.code-snippets"
+      },
+      {
+        "language": "javascriptreact",
+        "path": "./snippets/granular.code-snippets"
+      },
+      {
+        "language": "typescript",
+        "path": "./snippets/granular.code-snippets"
+      },
+      {
+        "language": "typescriptreact",
+        "path": "./snippets/granular.code-snippets"
+      }
+    ],
+    "configuration": {
+      "title": "Granular",
+      "properties": {
+        "granular.lint.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run the granular CLI lint on save and report inline diagnostics."
+        },
+        "granular.lint.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional path to the granular CLI binary. Falls back to ./node_modules/.bin/granular."
+        },
+        "granular.lint.runOn": {
+          "type": "string",
+          "enum": ["save", "change"],
+          "default": "save",
+          "description": "When to run the linter."
+        }
+      }
+    },
+    "commands": [
+      { "command": "granular.lint.runActive", "title": "Granular: Lint Active File" },
+      { "command": "granular.lint.runWorkspace", "title": "Granular: Lint Workspace" },
+      { "command": "granular.create", "title": "Granular: Create New App" }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "vscode:prepublish": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zerobytes/granular-vscode.git"
+  }
+}

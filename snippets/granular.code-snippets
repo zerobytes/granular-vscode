@@ -1,0 +1,78 @@
+{
+  "Granular: signal": {
+    "prefix": "gsig",
+    "body": ["const ${1:value} = signal(${2:initial});"],
+    "description": "Create a granular signal"
+  },
+  "Granular: state": {
+    "prefix": "gstate",
+    "body": ["const ${1:store} = state({", "  $0", "});"],
+    "description": "Create a granular state object"
+  },
+  "Granular: computed via derive": {
+    "prefix": "gderive",
+    "body": ["const ${1:value} = derive(() => ${2:expression});"],
+    "description": "Create an auto-tracking derived value"
+  },
+  "Granular: after change": {
+    "prefix": "gafter",
+    "body": ["after(${1:source}).change((${2:next}, ${3:prev}) => {", "  $0", "});"],
+    "description": "Subscribe to changes on a source"
+  },
+  "Granular: after compute": {
+    "prefix": "gcompute",
+    "body": ["const ${1:result} = after(${2:source}).compute((${3:value}) => ${4:value});"],
+    "description": "Map a reactive source"
+  },
+  "Granular: when": {
+    "prefix": "gwhen",
+    "body": ["when(${1:condition}, () => ${2:Truthy()}, () => ${3:Falsy()})"],
+    "description": "Conditional render based on a predicate state"
+  },
+  "Granular: list": {
+    "prefix": "glist",
+    "body": [
+      "list(${1:items}, (${2:item}) => ${3:Element}({ key: ${2:item}.id }, ${2:item}.label), { key: (it) => it.id })"
+    ],
+    "description": "Render a reactive keyed list"
+  },
+  "Granular: bootstrap app": {
+    "prefix": "gboot",
+    "body": [
+      "import { bootstrap, Div, ${1:H1} } from '@granularjs/core';",
+      "",
+      "bootstrap(",
+      "  Div(",
+      "    $0",
+      "  ),",
+      "  document.getElementById('app'),",
+      ");"
+    ],
+    "description": "Bootstrap a granular app"
+  },
+  "Granular: form schema": {
+    "prefix": "gform",
+    "body": [
+      "const ${1:f} = formSchema({",
+      "  ${2:email}: { initial: '', required: true, email: true },",
+      "  ${3:password}: { initial: '', minLength: 8 },",
+      "});"
+    ],
+    "description": "Create a schema-driven form"
+  },
+  "Granular: cls tagged literal": {
+    "prefix": "gcls",
+    "body": ["cls`${1:base} ${${2:flag} && '${3:active}'}`"],
+    "description": "Reactive class name composition"
+  },
+  "Granular: enableDevMode": {
+    "prefix": "gdev",
+    "body": [
+      "if (import.meta.env?.DEV) {",
+      "  const { enableDevMode } = await import('@granularjs/core');",
+      "  enableDevMode();",
+      "}"
+    ],
+    "description": "Enable runtime asserts in dev"
+  }
+}
