@@ -62,7 +62,12 @@
   },
   "scripts": {
     "compile": "tsc -p ./",
-    "vscode:prepublish": "tsc -p ./"
+    "vscode:prepublish": "tsc -p ./",
+    "version": "git add -A",
+    "postversion": "git push && git push origin v$(node -p \"require('./package.json').version\")",
+    "release:patch": "./release.sh patch",
+    "release:minor": "./release.sh minor",
+    "release:major": "./release.sh major"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
