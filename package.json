@@ -2,11 +2,22 @@
   "name": "granular-vscode",
   "displayName": "Granular for VSCode",
   "description": "Snippets and inline diagnostics for @granularjs/core projects.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "zerobytes",
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["Snippets", "Linters", "Programming Languages"],
-  "keywords": ["granular", "granularjs", "reactivity", "signals"],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Snippets",
+    "Linters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "granular",
+    "granularjs",
+    "reactivity",
+    "signals"
+  ],
   "activationEvents": [
     "onLanguage:javascript",
     "onLanguage:javascriptreact",
@@ -48,16 +59,28 @@
         },
         "granular.lint.runOn": {
           "type": "string",
-          "enum": ["save", "change"],
+          "enum": [
+            "save",
+            "change"
+          ],
           "default": "save",
           "description": "When to run the linter."
         }
       }
     },
     "commands": [
-      { "command": "granular.lint.runActive", "title": "Granular: Lint Active File" },
-      { "command": "granular.lint.runWorkspace", "title": "Granular: Lint Workspace" },
-      { "command": "granular.create", "title": "Granular: Create New App" }
+      {
+        "command": "granular.lint.runActive",
+        "title": "Granular: Lint Active File"
+      },
+      {
+        "command": "granular.lint.runWorkspace",
+        "title": "Granular: Lint Workspace"
+      },
+      {
+        "command": "granular.create",
+        "title": "Granular: Create New App"
+      }
     ]
   },
   "scripts": {
