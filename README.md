@@ -29,8 +29,23 @@ npm install --save-dev @granularjs/cli
 ```bash
 npm install
 npm run compile           # tsc -p .
-npx -y vsce package       # produce a .vsix
+npx -y @vscode/vsce package   # produce a .vsix (no token needed)
 ```
+
+## Publish to the Marketplace
+
+1. Create a [Personal Access Token](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=Windows) in Azure DevOps with **Marketplace → Manage** scope.
+2. Copy `.env.example` to `.env` and set `VSCE_PAT=...` (`.env` is never committed).
+3. The `publisher` field in `package.json` is **`zerobytes`** — it must match [your publisher on the Marketplace](https://marketplace.visualstudio.com/manage/publishers/zerobytes).
+4. From a clean git tree:
+
+```bash
+./release.sh patch   # or minor | major
+```
+
+The script runs `npm ci`, compiles, bumps the version with `npm version`, then runs `vsce publish` using the token from `.env`.
+
+You can also export the token only for one session: `export VSCE_PAT='...'` and run `./release.sh patch` without a `.env` file.
 
 ## Develop
 

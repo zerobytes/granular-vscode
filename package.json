@@ -3,7 +3,7 @@
   "displayName": "Granular for VSCode",
   "description": "Snippets and inline diagnostics for @granularjs/core projects.",
   "version": "0.1.0",
-  "publisher": "granularjs",
+  "publisher": "zerobytes",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Snippets", "Linters", "Programming Languages"],
   "keywords": ["granular", "granularjs", "reactivity", "signals"],
