@@ -28,9 +28,16 @@ npm install --save-dev @granularjs/cli
 
 ```bash
 npm install
-npm run compile           # tsc -p .
-npx -y @vscode/vsce package   # produce a .vsix (no token needed)
+npm run vsix              # compile + produce a .vsix (no token needed)
 ```
+
+That writes a file named `granular-vscode-<version>.vsix` in the project root (version comes from `package.json`). Use it whenever the Marketplace web UI does not offer **Download Extension** (that link is easy to miss or absent depending on account and layout).
+
+### Cursor, VSCodium, and other Open-VSX–based editors
+
+[Cursor](https://cursor.com/docs/configuration/extensions) (and similar forks) use the [Open VSX](https://open-vsx.org/) registry for in-app search, not the Microsoft Visual Studio Marketplace. An extension published only on the Marketplace will not show up in the Cursor extensions search until it is also published to Open VSX (see below).
+
+Until then, install from the local VSIX: **Command Palette** → **Extensions: Install from VSIX…** → pick the file produced by `npm run vsix`. Updates installed this way do not auto-update from a store until you publish to Open VSX or reinstall a newer VSIX.
 
 ## Publish to the Marketplace
 
@@ -46,6 +53,26 @@ npx -y @vscode/vsce package   # produce a .vsix (no token needed)
 The script runs `npm ci`, compiles, bumps the version with `npm version`, then runs `vsce publish` using the token from `.env`.
 
 You can also export the token only for one session: `export VSCE_PAT='...'` and run `./release.sh patch` without a `.env` file.
+
+## Publish to Open VSX (optional, for Cursor search)
+
+When you want the extension to appear in Cursor’s built-in search (and in VSCodium / other Open-VSX clients):
+
+1. Create an account at [open-vsx.org](https://open-vsx.org/) (Eclipse Foundation) if you do not have one.
+2. Create a **Personal Access Token** under [User settings → Access tokens](https://open-vsx.org/user-settings/tokens).
+3. From this directory, after `npm run vsix` (or right after a successful `vsce publish` to Microsoft), run:
+
+```bash
+npx -y ovsx publish ./granular-vscode-$(node -p "require('./package.json').version").vsix -p YOUR_OPEN_VSX_TOKEN
+```
+
+Alternatively publish from source (same `publisher` / `name` as `package.json`):
+
+```bash
+npx -y ovsx publish -p YOUR_OPEN_VSX_TOKEN
+```
+
+Use the **same** `publisher` and extension `name` as on the Microsoft Marketplace so the extension id stays `zerobytes.granular-vscode` everywhere. You can wire Open VSX into CI or `release.sh` later if you want a single command for both registries.
 
 ## Develop
 

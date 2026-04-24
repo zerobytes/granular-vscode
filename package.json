@@ -85,6 +85,7 @@
   },
   "scripts": {
     "compile": "tsc -p ./",
+    "vsix": "npm run compile && npx -y @vscode/vsce package",
     "vscode:prepublish": "tsc -p ./",
     "version": "git add -A",
     "postversion": "git push && git push origin v$(node -p \"require('./package.json').version\")",
