@@ -2,7 +2,7 @@
   "name": "granular-vscode",
   "displayName": "Granular for VSCode",
   "description": "Snippets and inline diagnostics for @granularjs/core projects.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "zerobytes",
   "engines": {
     "vscode": "^1.85.0"
