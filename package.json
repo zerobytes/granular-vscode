@@ -39,12 +39,12 @@
         "granular.lint.enable": {
           "type": "boolean",
           "default": true,
-          "description": "Run the granular CLI lint on save and report inline diagnostics."
+          "description": "Run the granular linter on save and report inline diagnostics."
         },
         "granular.lint.cliPath": {
           "type": "string",
           "default": "",
-          "description": "Optional path to the granular CLI binary. Falls back to ./node_modules/.bin/granular."
+          "description": "Optional path to the granular-lint (or granular) CLI binary. Falls back to ./node_modules/.bin/granular-lint, then ./node_modules/.bin/granular."
         },
         "granular.lint.runOn": {
           "type": "string",

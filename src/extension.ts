@@ -14,32 +14,56 @@ interface LintFinding {
   severity?: 'error' | 'warning' | 'info';
 }
 
-const LINE_REGEX = /^\s*([^\s].+?):(\d+):(\d+)\s+(\[[^\]]+\])\s+(.+)$/;
-
-function resolveCliPath(workspaceFolder: vscode.WorkspaceFolder | undefined): string | null {
+function resolveLintCliPath(workspaceFolder: vscode.WorkspaceFolder | undefined): string | null {
   const cfg = vscode.workspace.getConfiguration('granular');
   const explicit = cfg.get<string>('lint.cliPath');
   if (explicit && fs.existsSync(explicit)) return explicit;
   if (!workspaceFolder) return null;
-  const local = path.join(workspaceFolder.uri.fsPath, 'node_modules', '.bin', 'granular');
-  if (fs.existsSync(local)) return local;
+  const candidates = [
+    path.join(workspaceFolder.uri.fsPath, 'node_modules', '.bin', 'granular-lint'),
+    path.join(workspaceFolder.uri.fsPath, 'node_modules', '.bin', 'granular'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
   return null;
 }
 
-function parseFindings(stdout: string): LintFinding[] {
+function resolveGranularCliPath(workspaceFolder: vscode.WorkspaceFolder | undefined): string | null {
+  if (!workspaceFolder) return null;
+  const candidates = [
+    path.join(workspaceFolder.uri.fsPath, 'node_modules', '.bin', 'granular'),
+    path.join(workspaceFolder.uri.fsPath, 'node_modules', '.bin', 'create-granular-app'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
+function parseFindings(stdout: string, workspaceRoot: string): LintFinding[] {
+  let parsed: Array<{ filePath: string; messages: Array<{ ruleId: string; message: string; line: number; column: number; severity: 'error' | 'warning' | 'info' }> }>;
+  try {
+    parsed = JSON.parse(stdout);
+  } catch {
+    return [];
+  }
   const findings: LintFinding[] = [];
-  for (const line of stdout.split(/\r?\n/)) {
-    const m = line.match(LINE_REGEX);
-    if (!m) continue;
-    const [, file, ln, col, ruleTag, message] = m;
-    findings.push({
-      rule: ruleTag.replace(/[[\]]/g, ''),
-      message: message.trim(),
-      file,
-      line: Math.max(0, parseInt(ln, 10) - 1),
-      column: Math.max(0, parseInt(col, 10) - 1),
-      severity: 'warning',
-    });
+  for (const fileResult of parsed) {
+    if (!fileResult || !Array.isArray(fileResult.messages)) continue;
+    const filePath = path.isAbsolute(fileResult.filePath)
+      ? fileResult.filePath
+      : path.resolve(workspaceRoot, fileResult.filePath);
+    for (const m of fileResult.messages) {
+      findings.push({
+        rule: m.ruleId,
+        message: m.message,
+        file: filePath,
+        line: Math.max(0, (m.line ?? 1) - 1),
+        column: Math.max(0, (m.column ?? 1) - 1),
+        severity: m.severity ?? 'warning',
+      });
+    }
   }
   return findings;
 }
@@ -55,15 +79,29 @@ function runCli(cliPath: string, args: string[], cwd: string): Promise<{ code: n
   });
 }
 
+function buildLintArgs(cliPath: string, target: string): string[] {
+  const base = path.basename(cliPath).toLowerCase();
+  const isUmbrella = base === 'granular' || base === 'granular.cmd';
+  return isUmbrella
+    ? ['lint', '--format', 'json', '--no-color', target]
+    : ['--format', 'json', '--no-color', target];
+}
+
+function severityToVscode(s: 'error' | 'warning' | 'info' | undefined): vscode.DiagnosticSeverity {
+  if (s === 'error') return vscode.DiagnosticSeverity.Error;
+  if (s === 'info') return vscode.DiagnosticSeverity.Information;
+  return vscode.DiagnosticSeverity.Warning;
+}
+
 async function lintTarget(diagnostics: vscode.DiagnosticCollection, target: string, workspace: vscode.WorkspaceFolder) {
-  const cli = resolveCliPath(workspace);
+  const cli = resolveLintCliPath(workspace);
   if (!cli) return;
-  const result = await runCli(cli, ['lint', target], workspace.uri.fsPath);
-  const findings = parseFindings(result.stdout);
+  const result = await runCli(cli, buildLintArgs(cli, target), workspace.uri.fsPath);
+  const findings = parseFindings(result.stdout, workspace.uri.fsPath);
   const byFile = new Map<string, vscode.Diagnostic[]>();
   for (const f of findings) {
     const range = new vscode.Range(f.line, f.column, f.line, f.column + 1);
-    const diag = new vscode.Diagnostic(range, `[${f.rule}] ${f.message}`, vscode.DiagnosticSeverity.Warning);
+    const diag = new vscode.Diagnostic(range, `[${f.rule}] ${f.message}`, severityToVscode(f.severity));
     diag.source = DIAGNOSTICS_SOURCE;
     diag.code = f.rule;
     const list = byFile.get(f.file) ?? [];
@@ -115,18 +153,21 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('granular.create', async () => {
       const name = await vscode.window.showInputBox({ prompt: 'Granular app name' });
       if (!name) return;
-      const tmpl = await vscode.window.showQuickPick(['basic', 'router', 'ssr', 'ui'], { placeHolder: 'Template' });
-      if (!tmpl) return;
+      const variant = await vscode.window.showQuickPick(['default', 'jsx', 'ssr'], { placeHolder: 'Template' });
+      if (!variant) return;
       const ws = vscode.workspace.workspaceFolders?.[0];
       if (!ws) return;
-      const cli = resolveCliPath(ws);
-      if (!cli) {
-        vscode.window.showErrorMessage('granular CLI not found. Install @granularjs/core in this workspace.');
-        return;
-      }
+      const cli = resolveGranularCliPath(ws);
       const term = vscode.window.createTerminal({ name: 'Granular Create', cwd: ws.uri.fsPath });
       term.show();
-      term.sendText(`node "${cli}" create ${name} --template ${tmpl}`);
+      const flag = variant === 'default' ? '' : ` --${variant}`;
+      if (cli && path.basename(cli).toLowerCase().startsWith('granular')) {
+        term.sendText(`node "${cli}" create ${name}${flag}`);
+      } else if (cli) {
+        term.sendText(`node "${cli}" ${name}${flag}`);
+      } else {
+        term.sendText(`npx -y @granularjs/cli create ${name}${flag}`);
+      }
     }),
   );
 }
